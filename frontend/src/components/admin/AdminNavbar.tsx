@@ -31,11 +31,6 @@ const navItems = [
     href: "/admin/reports",
     icon: BarChart2,
   },
-  {
-    label: "Pengaturan",
-    href: "/settings",
-    icon: Settings,
-  },
   
 ];
 

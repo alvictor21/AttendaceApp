@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { Search, Plus, Pencil, Trash2, RefreshCw } from "lucide-react";
 import { useRouter } from "next/navigation";
-
+import { API } from "@/src/meta/api";
 interface Guru {
   id: number;
   nik: string;
@@ -101,7 +101,7 @@ export default function TeacherDataPage() {
   const fetchData = useCallback(async () => {
     try {
       setError(null);
-      const res = await fetch(`${API_BASE}/admin/guru`, { cache: "no-store" });
+      const res = await fetch("/api/teachers", { cache: "no-store" });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data: ApiResponse = await res.json();
       setGuruList(data.guru);
@@ -124,7 +124,7 @@ export default function TeacherDataPage() {
     if (!confirmDelete) return;
 
     try {
-      const res = await fetch(`${API_BASE}/admin/guru/${guru.nik}`, { method: "DELETE" });
+      const res = await fetch(`/api/teachers/${guru.nik}`, { method: "DELETE" });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
       setGuruList((prev) => prev.filter((g) => g.nik !== guru.nik));

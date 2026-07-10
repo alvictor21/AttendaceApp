@@ -13,7 +13,7 @@ class AbsensiController extends Controller
     public function checkIn(Request $request)
     {
         $request->validate([
-            'foto' => 'required|image|mimes:jpeg,png,jpg|max:5120', // max 5MB
+            'foto' => 'required|image|mimes:jpeg,png,jpg,heic,heif,hevc|max:8120', // max 8MB
         ]);
         $user = $request->user(); // identitas dari token Sanctum, aman dari pemalsuan
 
@@ -113,6 +113,7 @@ class AbsensiController extends Controller
         // hitung ringkasan/summary
         $totalHari = $absensi->count();
         $onTime = $absensi->where('status', 'On Time')->count();
+        $pengajuanizin = $absensi->where('status', 'Pengajuan Izin')->count();
         $late = $absensi->where('status', 'Late')->count();
         $sakit = $absensi->where('status', 'Sakit')->count();
         $izin = $absensi->where('status', 'Izin')->count();
@@ -122,6 +123,7 @@ class AbsensiController extends Controller
             'summary' => [
                 'total_hari' => $totalHari,
                 'on_time'    => $onTime,
+                'pengajuan_izin' => ' $pengajuanizin',
                 'late'       => $late,
                 'sakit'      => $sakit,
                 'izin'       => $izin,

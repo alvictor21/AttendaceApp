@@ -65,6 +65,17 @@ class AuthController extends Controller
      */
     public function me(Request $request)
     {
-        return response()->json($request->user());
+        $user = $request->user()->load('dataGuru');
+
+        return response()->json([
+            'id' => $user->id,
+            'nama_user' => $user->nama_user,
+            'username' => $user->username,
+            'role' => $user->role,
+            'nik' => $user->nik,
+            'jabatan' => $user->dataGuru->jabatan ?? null,
+            'email' => $user->email ?? $user->dataGuru->email ?? null,
+            'no_hp' => $user->no_hp ?? $user->dataGuru->no_hp ?? null,
+        ]);
     }
 }

@@ -96,9 +96,7 @@ const daysInMonth = new Date(viewYear, viewMonth, 0).getDate();
       ...(status !== "All" && { status }),
     });
 
-    const response = await fetch(`${API.LAPORAN}?${params}`, {
-      headers: { "Authorization": `Bearer ${token}` },
-    });
+    const response = await fetch(`/api/report?${params}`);
     const data = await response.json();
 
     setSummary(data.summary);
@@ -122,9 +120,7 @@ useEffect(() => {
       tahun: String(viewYear),
     });
 
-    const response = await fetch(`${API.LAPORAN_EXPORT_XLSX}?${params}`, {
-      headers: { "Authorization": `Bearer ${token}` },
-    });
+    const response = await fetch(`/api/report/export-xlsx?${params}`);
 
     if (!response.ok) {
       alert("Gagal export Excel.");

@@ -54,7 +54,7 @@ export default function TeacherAttendanceDetailsPage() {
   const fetchDetail = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch(`${API.IZIN_DETAIL}/${nik}`, {
+      const response = await fetch(`/api/leave/detail/${nik}`, {
         headers: { "Authorization": `Bearer ${token}` },
       });
       const data = await response.json();
@@ -85,7 +85,7 @@ export default function TeacherAttendanceDetailsPage() {
     setProcessing(true);
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch(`${API.IZIN_APPROVE}/${nik}`, {
+      const response = await fetch(`/api/leave/approve/${nik}`, {
         method: "POST",
         headers: { "Authorization": `Bearer ${token}` },
       });
@@ -112,7 +112,7 @@ export default function TeacherAttendanceDetailsPage() {
     setProcessing(true);
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch(`${API.IZIN_REJECT}/${nik}`, {
+      const response = await fetch(`/api/leave/reject/${nik}`, {
         method: "POST",
         headers: { "Authorization": `Bearer ${token}` },
       });

@@ -9,12 +9,13 @@ export default function LoginPage() {
 
   const handleLogin = async () => {
   try {
-    const response = await fetch(API.LOGIN, {
+    const response = await fetch("/api/login", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Accept": "application/json",
+        Accept: "application/json",
       },
+      credentials: "include",
       body: JSON.stringify({
         username: email,
         password: password,
@@ -28,17 +29,17 @@ export default function LoginPage() {
       return;
     }
 
-    localStorage.setItem("token", data.access_token);
-    localStorage.setItem("user", JSON.stringify(data.user));
+    // Tidak perlu lagi simpan token di localStorage
 
     if (data.user.role === "admin") {
-      router.push("/admin/dashboard");
+      router.replace("/admin/dashboard");
     } else {
-      router.push("/user/dashboard");
+      router.replace("/user/dashboard");
     }
 
   } catch (error) {
     console.error("Error koneksi:", error);
+    alert("Terjadi kesalahan saat menghubungi server.");
   }
 };
 

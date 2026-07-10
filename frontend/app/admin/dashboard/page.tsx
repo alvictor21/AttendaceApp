@@ -143,9 +143,8 @@ export default function DashboardPage() {
 
       try {
         const token = localStorage.getItem("token");
-        const response = await fetch(API.CHECK_OUT_ABSEN, {
-          method: "POST",
-          headers: { "Authorization": `Bearer ${token}` },
+        const response = await fetch("/api/attendance/check-out", {
+          method: "POST"
         });
 
         const data = await response.json();
@@ -166,12 +165,7 @@ export default function DashboardPage() {
     useEffect(() => {
     const fetchTodayStatus = async () => {
     try {
-        const token = localStorage.getItem("token");
-        const response = await fetch(API.ABSENHARIINI, {
-          headers: {
-            "Authorization": `Bearer ${token}`,
-          },
-        });
+        const response = await fetch("/api/attendance/today");
         const data = await response.json();
 
         if (data.sudah_absen) {
@@ -195,18 +189,13 @@ export default function DashboardPage() {
     }
     
     try {
-      const token = localStorage.getItem("token");
+
 
       const formData = new FormData();
       formData.append("foto", selfieFile);
 
-      const response = await fetch(API.CHECK_IN_ABSEN, {
+      const response = await fetch("/api/attendance/check-in", {
         method: "POST",
-        headers: {
-          "Authorization": `Bearer ${token}`,
-          // JANGAN tambahkan "Content-Type" di sini
-          // karena FormData akan otomatis set boundary-nya sendiri
-        },
         body: formData,
       });
 
@@ -242,7 +231,7 @@ export default function DashboardPage() {
         const getTotalGuru = async () => {
             try {
                 const response = await axios.get(
-                    API.TOTAL_GURU
+                    "/api/dashboard/total-guru"
                 )
 
                 setTotalGuru(response.data.total_guru)
@@ -258,7 +247,7 @@ export default function DashboardPage() {
       const getStatistikHariIni = async () => {
           try {
               const response = await axios.get(
-                  API.STATISTIK_TODAY
+                  "/api/dashboard/statistik"
               )
 
               setStatistikHariIni(response.data)
@@ -377,14 +366,14 @@ export default function DashboardPage() {
             ) : (
               <button
                 onClick={handleCheckOut}
-                disabled={!isAfter2PM}
+                disabled={!isAfter2PM && !isWithinRadius}
                 className={`w-full font-bold text-[14px] py-3 rounded-xl flex items-center justify-center gap-2 transition-colors duration-200 ${
                   isAfter2PM
                     ? "bg-sky-500 hover:bg-sky-600 active:bg-sky-700 text-white"
                     : "bg-gray-300 text-gray-500 cursor-not-allowed"
                 }`}
               >
-                {isAfter2PM ? "🚪 Check Out" : "🔒 Check Out (tersedia pukul 14:00)"}
+                {isAfter2PM ? "🚪 Check Out" : "🔒 Check Out (tersedia pukul 14:00) & Harus Berada Di Zona Sekolah"}
               </button>
             )}
           </div>

@@ -6,7 +6,7 @@ import {
   ArrowLeft, Briefcase, Phone, MapPin, Pencil, Save,
   CheckCircle2, Clock, CalendarOff, Thermometer, XCircle, ChevronRight,
 } from "lucide-react";
-
+import { API } from "@/src/meta/api";
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api";
 
 interface GuruDetail {
@@ -87,8 +87,12 @@ export default function TeacherDetailPage() {
     try {
       setError(null);
       const [detailRes, statRes] = await Promise.all([
-        fetch(`${API_BASE}/admin/guru/${nik}`, { cache: "no-store" }),
-        fetch(`${API_BASE}/admin/guru/${nik}/statistik-bulanan`, { cache: "no-store" }),
+        fetch(`/api/teachers/${nik}`, {
+          cache: "no-store",
+        }),
+        fetch(`/api/teachers/${nik}/statistik-bulanan`, {
+          cache: "no-store",
+        }),
       ]);
 
       if (!detailRes.ok) throw new Error(`HTTP ${detailRes.status}`);
@@ -127,7 +131,7 @@ export default function TeacherDetailPage() {
     if (!form) return;
     setSaving(true);
     try {
-      const res = await fetch(`${API_BASE}/admin/guru/${nik}`, {
+      const res = await fetch(`/api/teachers/${nik}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
@@ -271,12 +275,6 @@ export default function TeacherDetailPage() {
                 <h2 className="text-sm font-bold text-slate-800">Statistik Bulan Ini</h2>
                 <p className="text-xs text-slate-400 mt-0.5">Performa absensi {namaBulan} {periode?.tahun}</p>
               </div>
-              <button
-                onClick={() => { setNotice("Halaman laporan lengkap akan segera hadir."); setTimeout(() => setNotice(null), 3000); }}
-                className="flex items-center gap-0.5 text-xs font-semibold text-red-500"
-              >
-                Lihat Laporan <ChevronRight size={14} />
-              </button>
             </div>
 
             <div className="grid grid-cols-3 gap-2.5 mt-2.5">

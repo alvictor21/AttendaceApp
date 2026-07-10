@@ -102,8 +102,8 @@ class LaporanController extends Controller
     $sheet->setTitle('Rekap Absensi');
 
     // ── Header ──
-    // Kolom "No" digabung dengan "Tanggal" secara konsep, tapi kita tetap pisah
-    $headers = ['No', 'Tanggal', 'Nama Guru', 'Akun Guru', 'Status Absen', 'Jam Masuk Absen'];
+    // Tambah kolom "Jam Keluar Absen" di posisi ke-7
+    $headers = ['No', 'Tanggal', 'Nama Guru', 'Akun Guru', 'Status Absen', 'Jam Masuk Absen', 'Jam Keluar Absen'];
     foreach ($headers as $col => $header) {
         $cell = $sheet->getCell([$col + 1, 1]);
         $cell->setValue($header);
@@ -122,23 +122,24 @@ class LaporanController extends Controller
         $tanggal          = sprintf('%s-%02d-%02d', $tahun, $bulan, $day);
         $tanggalFormatted = sprintf('%02d/%02d/%s', $day, $bulan, $tahun);
 
-        $startRow = $row; // ← catat baris awal blok tanggal ini
+        $startRow = $row;
 
         foreach ($semuaGuru as $guru) {
             $key   = $guru->nik . '_' . $tanggal;
             $absen = $semuaAbsen->get($key);
 
-            $status   = $absen ? $absen->status : 'Absent';
-            $jamAbsen = ($absen && $absen->jam_absen) ? substr($absen->jam_absen, 0, 5) : 'No Record';
-            $bgColor  = $statusColor[$status] ?? 'FFCBD5E1';
+            $status      = $absen ? $absen->status : 'Absent';
+            $jamAbsen    = ($absen && $absen->jam_absen)  ? substr($absen->jam_absen, 0, 5)  : 'No Record';
+            $jamKeluar   = ($absen && $absen->jam_keluar) ? substr($absen->jam_keluar, 0, 5) : 'No Record';
+            $bgColor     = $statusColor[$status] ?? 'FFCBD5E1';
 
-            // Tulis No, Nama Guru, Akun, Status, Jam (kolom B/Tanggal dilewati dulu)
             $rowData = [
                 1 => $no++,
                 3 => $guru->nama_lengkap,
                 4 => $semuaPengguna->get($guru->nik)?->username ?? '-',
                 5 => $status,
                 6 => $jamAbsen,
+                7 => $jamKeluar,
             ];
 
             foreach ($rowData as $colIndex => $value) {
@@ -158,7 +159,7 @@ class LaporanController extends Controller
                         'startColor' => ['rgb' => $isStatusCol ? $bgColor : ($row % 2 === 0 ? 'FFF8FAFC' : 'FFFFFFFF')],
                     ],
                     'alignment' => [
-                        'horizontal' => $colIndex === 1 || $colIndex === 5 || $colIndex === 6
+                        'horizontal' => in_array($colIndex, [1, 5, 6, 7])
                             ? Alignment::HORIZONTAL_CENTER
                             : Alignment::HORIZONTAL_LEFT,
                         'vertical'   => Alignment::VERTICAL_CENTER,
@@ -173,9 +174,8 @@ class LaporanController extends Controller
             $row++;
         }
 
-        $endRow = $row - 1; // baris terakhir blok tanggal ini
+        $endRow = $row - 1;
 
-        // ── Gabung kolom Tanggal (B) dari $startRow s.d $endRow ──
         $sheet->mergeCells("B{$startRow}:B{$endRow}");
         $dateCell = $sheet->getCell([2, $startRow]);
         $dateCell->setValue($tanggalFormatted);
@@ -191,16 +191,20 @@ class LaporanController extends Controller
                 'allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => 'FFE2E8F0']],
             ],
         ]);
+
+        // ── Baris kosong (gap) sebagai pemisah antar tanggal ──
+        $sheet->getRowDimension($row)->setRowHeight(22); // baris tipis, cukup buat spasi
+        $row++;
     }
 
     // ── Lebar kolom ──
-    $sheet->getColumnDimension('A')->setWidth(6);
-    $sheet->getColumnDimension('B')->setWidth(14);
-    $sheet->getColumnDimension('C')->setWidth(28);
-    $sheet->getColumnDimension('D')->setWidth(24);
-    $sheet->getColumnDimension('E')->setWidth(16);
-    $sheet->getColumnDimension('E')->setWidth(16);
-    $sheet->getColumnDimension('F')->setWidth(16);
+    $sheet->getColumnDimension('A')->setWidth(6);   // No
+    $sheet->getColumnDimension('B')->setWidth(14);  // Tanggal
+    $sheet->getColumnDimension('C')->setWidth(28);  // Nama Guru
+    $sheet->getColumnDimension('D')->setWidth(24);  // Akun Guru
+    $sheet->getColumnDimension('E')->setWidth(16);  // Status
+    $sheet->getColumnDimension('F')->setWidth(16);  // Jam Masuk
+    $sheet->getColumnDimension('G')->setWidth(16);  // Jam Keluar
 
     $sheet->freezePane('A2');
 

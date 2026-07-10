@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { useDistanceToSchool } from "@/src/hooks/useDistanceToSchool";
+import { getCurrentUser } from "@/src/services/auth.services";
 import CameraCapture from "@/src/components/CameraCapture";
 import { API } from "@/src/meta/api";
 import {
@@ -69,7 +70,7 @@ export default function TeacherDashboard() {
   
         try {
           const token = localStorage.getItem("token");
-          const response = await fetch(API.CHECK_OUT_ABSEN, {
+          const response = await fetch("/api/attendance/check-out", {
             method: "POST",
             headers: { "Authorization": `Bearer ${token}` },
           });
@@ -92,10 +93,8 @@ export default function TeacherDashboard() {
  useEffect(() => {
   const fetchTodayStatus = async () => {
     try {
-      const token = localStorage.getItem("token");
-      const response = await fetch("http://127.0.0.1:8000/api/absensi/today", {
-        headers: { "Authorization": `Bearer ${token}` },
-      });
+
+      const response = await fetch("/api/attendance/today");
       const data = await response.json();
 
       if (data.sudah_absen && data.data.status !== "Pengajuan Izin") {
@@ -117,10 +116,8 @@ export default function TeacherDashboard() {
     alert("Silahkan Masuk Ke Halaman Pengajuan Izin (Leave Permission) untuk mengisi keterangan.");
 
     try {
-      const token = localStorage.getItem("token");
-      const response = await fetch("http://127.0.0.1:8000/api/izin/store", {
-        method: "POST",
-        headers: { "Authorization": `Bearer ${token}` },
+      const response = await fetch("/api/leave/store", {
+        method: "POST"
       });
       const data = await response.json();
 
@@ -140,10 +137,8 @@ export default function TeacherDashboard() {
     if (!konfirmasi) return;
 
     try {
-      const token = localStorage.getItem("token");
-      const response = await fetch("http://127.0.0.1:8000/api/izin/cancel", {
-        method: "DELETE",
-        headers: { "Authorization": `Bearer ${token}` },
+      const response = await fetch("/api/leave/cancel", {
+        method: "DELETE"
       });
       const data = await response.json();
 
@@ -166,18 +161,12 @@ export default function TeacherDashboard() {
         }
         
         try {
-          const token = localStorage.getItem("token");
     
           const formData = new FormData();
           formData.append("foto", selfieFile);
     
-          const response = await fetch(API.CHECK_IN_ABSEN, {
+          const response = await fetch("/api/attendance/check-in", {
             method: "POST",
-            headers: {
-              "Authorization": `Bearer ${token}`,
-              // JANGAN tambahkan "Content-Type" di sini
-              // karena FormData akan otomatis set boundary-nya sendiri
-            },
             body: formData,
           });
     
@@ -202,11 +191,17 @@ export default function TeacherDashboard() {
 
 
     useEffect(() => {
-      const storedUser = localStorage.getItem("user");
-      if (storedUser) {
-        setUser(JSON.parse(storedUser));
+    async function loadUser() {
+      try {
+        const user = await getCurrentUser();
+        setUser(user);
+      } catch (error) {
+        console.error(error);
       }
-    }, []);
+    }
+
+    loadUser();
+  }, []);
 
     if (!user) {
       return <div>Loading...</div>;
@@ -288,14 +283,14 @@ export default function TeacherDashboard() {
             ) : (
               <button
                 onClick={handleCheckOut}
-                disabled={!isAfter2PM}
+                disabled={!isAfter2PM && !isWithinRadius}
                 className={`w-full font-bold text-[14px] py-3 rounded-xl flex items-center justify-center gap-2 transition-colors duration-200 ${
                   isAfter2PM
                     ? "bg-sky-500 hover:bg-sky-600 active:bg-sky-700 text-white"
                     : "bg-gray-300 text-gray-500 cursor-not-allowed"
                 }`}
               >
-                {isAfter2PM ? "🚪 Check Out" : "🔒 Check Out (tersedia pukul 14:00)"}
+                {isAfter2PM ? "🚪 Check Out" : "🔒 Check Out (tersedia pukul 14:00) & Harus Berada Di Zona Sekolah"}
               </button>
             )}
           </div>
@@ -371,17 +366,34 @@ export default function TeacherDashboard() {
         </div>
 
         {/* ── Quick Actions ── */}
+        
         <div className="flex flex-row w-full justify-center items-center gap-3">
           {/* Leave Permission */}
-          <button className="bg-white rounded-2xl w-full p-4 shadow-sm flex flex-col items-center gap-2 active:bg-gray-50 transition-colors"  onClick={() => router.push("/user/report")}>
-            <div className="w-11 h-11 rounded-xl bg-gray-200 flex items-center justify-center">
-              <ClipboardList size={20} className="text-rose-700" strokeWidth={1.8} />
-            </div>
-            <div className="text-center">
-              <p className="text-[13px] font-bold text-gray-900">Leave Permission</p>
-              <p className="text-[11px] text-gray-400 mt-0.5">Formal Request</p>
-            </div>
-          </button>
+          {todayIzin ? (
+              <button className="bg-white rounded-2xl w-full p-4 shadow-sm flex flex-col items-center gap-2 active:bg-gray-50 transition-colors"  onClick={() => router.push("/user/report")}>
+              <div className="w-11 h-11 rounded-xl bg-gray-200 flex items-center justify-center">
+                <ClipboardList size={20} className="text-rose-700" strokeWidth={1.8} />
+              </div>
+              <div className="text-center">
+                <p className="text-[13px] font-bold text-gray-900">Leave Permission</p>
+                <p className="text-[11px] text-gray-400 mt-0.5">Formal Request</p>
+              </div>
+            </button>
+          ) : (
+            <button className="bg-white rounded-2xl w-full p-4 shadow-sm flex flex-col items-center gap-2 active:bg-gray-50 transition-colors">
+              <div className="w-11 h-11 rounded-xl bg-gray-200 flex items-center justify-center">
+                <ClipboardList size={20} className="text-rose-700" strokeWidth={1.8} />
+              </div>
+              <div className="text-center">
+                <p className="text-[10px] font-bold text-gray-500">Leave Permission</p>
+                <p className="text-[7px] text-gray-500 mt-0.5">Formal Request</p>
+              </div>
+              <div className="text-center">
+                <p className="text-[13px] font-bold text-gray-900">Silahkan Tekan Izin Terlebih Dahulu </p>
+              </div>
+            </button>
+          )}
+          
         </div>
 
         {/* ── This Month ── */}

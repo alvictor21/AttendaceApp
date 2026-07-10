@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Save } from "lucide-react";
-
+import { API } from "@/src/meta/api";
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api";
 
 interface FormState {
@@ -58,7 +58,7 @@ export default function NewTeacherDataPage() {
     setSubmitError(null);
 
     try {
-      const res = await fetch(`${API_BASE}/admin/guru`, {
+      const res = await fetch("/api/teachers", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),

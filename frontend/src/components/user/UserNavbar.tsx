@@ -13,7 +13,6 @@ type NavItem = {
 const navItems: NavItem[] = [
   { key: "dashboard", label: "Dashboard", icon: LayoutDashboard, href: "/user/dashboard" },
   { key: "history",   label: "History",   icon: History,         href: "/user/history" },
-  { key: "settings",  label: "Settings",  icon: Settings,        href: "#" },
 ];
 
 export default function UserNavbar() {

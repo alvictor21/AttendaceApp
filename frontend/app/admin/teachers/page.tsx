@@ -227,7 +227,7 @@ export default function TeacherDirectoryPage() {
   const fetchData = useCallback(async () => {
     try {
       setError(null);
-      const res = await fetch(API.REKAP_ABSEN, {
+      const res = await fetch("/api/attendance/detail", {
         cache: "no-store",
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { getCurrentUser } from "@/src/services/auth.services";
 
 type AdminUser = {
   id: number;
@@ -25,14 +26,19 @@ function AdminProfileCard() {
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem("user"); // sesuaikan key kalau di login handler kamu beda
-      if (raw) setAdmin(JSON.parse(raw));
-    } catch {
-      setAdmin(null);
-    } finally {
-      setLoaded(true);
+  async function loadAdmin() {
+      try {
+        const user = await getCurrentUser();
+        setAdmin(user);
+      } catch (error) {
+        console.error(error);
+        setAdmin(null);
+      } finally {
+        setLoaded(true);
+      }
     }
+
+    loadAdmin();
   }, []);
 
   if (!loaded) return null;
